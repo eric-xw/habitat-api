@@ -24,10 +24,10 @@ class CustomFixedCategorical(torch.distributions.Categorical):
     def log_probs(self, actions):
         return (
             super()
-            .log_prob(actions.squeeze(-1))
-            .view(actions.size(0), -1)
-            .sum(-1)
-            .unsqueeze(-1)
+                .log_prob(actions.squeeze(-1))
+                .view(actions.size(0), -1)
+                .sum(-1)
+                .unsqueeze(-1)
         )
 
     def mode(self):
@@ -61,12 +61,12 @@ def update_linear_schedule(optimizer, epoch, total_num_epochs, initial_lr):
 
 class RolloutStorage:
     def __init__(
-        self,
-        num_steps,
-        num_envs,
-        observation_space,
-        action_space,
-        recurrent_hidden_state_size,
+            self,
+            num_steps,
+            num_envs,
+            observation_space,
+            action_space,
+            recurrent_hidden_state_size,
     ):
         self.observations = {}
 
@@ -113,14 +113,14 @@ class RolloutStorage:
         self.masks = self.masks.to(device)
 
     def insert(
-        self,
-        observations,
-        recurrent_hidden_states,
-        actions,
-        action_log_probs,
-        value_preds,
-        rewards,
-        masks,
+            self,
+            observations,
+            recurrent_hidden_states,
+            actions,
+            action_log_probs,
+            value_preds,
+            rewards,
+            masks,
     ):
         for sensor in observations:
             self.observations[sensor][self.step + 1].copy_(
@@ -150,9 +150,9 @@ class RolloutStorage:
             gae = 0
             for step in reversed(range(self.rewards.size(0))):
                 delta = (
-                    self.rewards[step]
-                    + gamma * self.value_preds[step + 1] * self.masks[step + 1]
-                    - self.value_preds[step]
+                        self.rewards[step]
+                        + gamma * self.value_preds[step + 1] * self.masks[step + 1]
+                        - self.value_preds[step]
                 )
                 gae = delta + gamma * tau * self.masks[step + 1] * gae
                 self.returns[step] = gae + self.value_preds[step]
@@ -160,8 +160,8 @@ class RolloutStorage:
             self.returns[-1] = next_value
             for step in reversed(range(self.rewards.size(0))):
                 self.returns[step] = (
-                    self.returns[step + 1] * gamma * self.masks[step + 1]
-                    + self.rewards[step]
+                        self.returns[step + 1] * gamma * self.masks[step + 1]
+                        + self.rewards[step]
                 )
 
     def recurrent_generator(self, advantages, num_mini_batch):
@@ -260,7 +260,10 @@ def batch_obs(observations):
 
     for obs in observations:
         for sensor in obs:
-            batch[sensor].append(obs[sensor])
+            if obs[sensor].dtype == "uint32":
+                batch[sensor].append(obs[sensor].astype("int32"))
+            else:
+                batch[sensor].append(obs[sensor])
 
     for sensor in batch:
         batch[sensor] = torch.tensor(
@@ -406,7 +409,7 @@ def ppo_args():
         type=str,
         default="RGB_SENSOR,DEPTH_SENSOR",
         help="comma separated string containing different sensors to use,"
-        "currently 'RGB_SENSOR' and 'DEPTH_SENSOR' are supported",
+             "currently 'RGB_SENSOR' and 'DEPTH_SENSOR' are supported",
     )
     parser.add_argument(
         "--task-config",
